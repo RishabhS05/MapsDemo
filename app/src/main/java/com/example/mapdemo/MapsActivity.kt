@@ -9,9 +9,9 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.OnCameraIdleListener
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import kotlinx.android.synthetic.main.activity_maps.*
 import java.util.*
 
 
@@ -27,7 +27,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+        //
         marker = MarkerOptions().position(LatLng(0.0, 0.0)).title("Marker in Sydney")
+            .icon(BitmapDescriptorFactory.fromResource(R.drawable.gps))
+        marker.zIndex(4.6f)
 
     }
 
@@ -44,21 +47,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap = googleMap
         // Add a marker in Sydney and move the camera
         val sydney = LatLng(0.0, 0.0)
-        marker.visible(true)
-        marker.draggable(true)
-        mMap.addMarker(marker)
-        marker.position(sydney)
+       // marker.visible(true)
+        //marker.draggable(true)
+//        mMap.addMarker(marker)
+//        marker.position(sydney)
+        //Set the current location of the user in  place of sydney
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
         mMap.setOnCameraIdleListener(OnCameraIdleListener {
             //get latlng at the center by calling
-            val midLatLng: LatLng = mMap.getCameraPosition().target
-            marker.position(midLatLng)
-            val geocoder = Geocoder(this, Locale.getDefault())
-            val address = geocoder.getFromLocation(marker.position.latitude, marker.position.longitude, 2)
-            if (address.size > 0) {
 
-                Toast.makeText(
-                    this, " lat ${marker.position.latitude} lng ${marker.position.longitude} address ${address}",
+            val midLatLng: LatLng = mMap.getCameraPosition().target
+            val geocoder = Geocoder(this, Locale.getDefault())
+            val address = geocoder.getFromLocation(midLatLng.latitude, midLatLng.longitude, 1)
+            if (address.size > 0) {
+                Toast.makeText(this,
+                    " lat ${marker.position.latitude} lng ${marker.position.longitude} address ${address[0].locality}",
                     Toast.LENGTH_LONG
                 ).show()
             }
