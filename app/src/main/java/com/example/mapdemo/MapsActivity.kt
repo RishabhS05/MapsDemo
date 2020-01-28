@@ -1,36 +1,44 @@
 package com.example.mapdemo
 
+import android.annotation.SuppressLint
 import android.location.Geocoder
+import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.OnCameraIdleListener
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import pub.devrel.easypermissions.EasyPermissions
 import java.util.*
+import java.util.jar.Manifest
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
-    lateinit var marker: MarkerOptions
+ private lateinit var fusedLocationClient: FusedLocationProviderClient
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        val mapFragment = supportFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-        //
-        marker = MarkerOptions().position(LatLng(0.0, 0.0)).title("Marker in Sydney")
-            .icon(BitmapDescriptorFactory.fromResource(R.drawable.gps))
-        marker.zIndex(4.6f)
+
+        if (EasyPermissions.hasPermissions(this, android.Manifest.permission.ACCESS_FINE_LOCATION)){
+            val mapFragment = supportFragmentManager
+                .findFragmentById(R.id.map) as SupportMapFragment
+            mapFragment.getMapAsync(this)
+}else {
+            EasyPermissions.requestPermissions(this,"Location Permission Required",1000,android.Manifest.permission.ACCESS_FINE_LOCATION)
+        }
 
     }
 
@@ -43,16 +51,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
      */
+    @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         // Add a marker in Sydney and move the camera
-        val sydney = LatLng(0.0, 0.0)
-       // marker.visible(true)
+        // marker.visible(true)
         //marker.draggable(true)
 //        mMap.addMarker(marker)
 //        marker.position(sydney)
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location : Location? ->
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(location!!.latitude,location!!.longitude)))
+            }
         //Set the current location of the user in  place of sydney
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
         mMap.setOnCameraIdleListener(OnCameraIdleListener {
             //get latlng at the center by calling
 
@@ -60,8 +71,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             val geocoder = Geocoder(this, Locale.getDefault())
             val address = geocoder.getFromLocation(midLatLng.latitude, midLatLng.longitude, 1)
             if (address.size > 0) {
-                Toast.makeText(this,
-                    " lat ${marker.position.latitude} lng ${marker.position.longitude} address ${address[0].locality}",
+                Toast.makeText(
+                    this,
+                    " lat ${midLatLng.latitude} lng ${midLatLng.longitude} address ${address[0].locality}",
                     Toast.LENGTH_LONG
                 ).show()
             }
