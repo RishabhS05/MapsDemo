@@ -5,7 +5,6 @@ import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -15,15 +14,16 @@ import com.google.android.gms.maps.GoogleMap.OnCameraIdleListener
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.activity_maps.*
 import pub.devrel.easypermissions.EasyPermissions
 import java.util.*
-import java.util.jar.Manifest
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
- private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,12 +32,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
 
-        if (EasyPermissions.hasPermissions(this, android.Manifest.permission.ACCESS_FINE_LOCATION)){
+        if (EasyPermissions.hasPermissions(this, android.Manifest.permission.ACCESS_FINE_LOCATION)) {
             val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
             mapFragment.getMapAsync(this)
-}else {
-            EasyPermissions.requestPermissions(this,"Location Permission Required",1000,android.Manifest.permission.ACCESS_FINE_LOCATION)
+        } else {
+            EasyPermissions.requestPermissions(
+                this,
+                "Location Permission Required",
+                1000,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            )
         }
 
     }
@@ -54,14 +59,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+
         // Add a marker in Sydney and move the camera
         // marker.visible(true)
         //marker.draggable(true)
 //        mMap.addMarker(marker)
 //        marker.position(sydney)
         fusedLocationClient.lastLocation
-            .addOnSuccessListener { location : Location? ->
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(location!!.latitude,location!!.longitude)))
+            .addOnSuccessListener { location: Location? ->
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(location!!.latitude, location!!.longitude)))
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(13.0f))
             }
         //Set the current location of the user in  place of sydney
         mMap.setOnCameraIdleListener(OnCameraIdleListener {
@@ -69,12 +76,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
             val midLatLng: LatLng = mMap.getCameraPosition().target
             val geocoder = Geocoder(this, Locale.getDefault())
-            val address = geocoder.getFromLocation(midLatLng.latitude, midLatLng.longitude, 1)
+            val address = geocoder.getFromLocation(midLatLng.latitude, midLatLng.longitude, 100)
             if (address.size > 0) {
-                Toast.makeText(
-                    this,
-                    " lat ${midLatLng.latitude} lng ${midLatLng.longitude} address ${address[0].locality}",
-                    Toast.LENGTH_LONG
+                Log.d("Address :: ", address.toString())
+                Snackbar.make(
+                    rlMap,
+                    "${address[0].getAddressLine(0)}",
+                    Snackbar.LENGTH_INDEFINITE
                 ).show()
             }
         })
