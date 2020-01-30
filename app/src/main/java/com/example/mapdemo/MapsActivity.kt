@@ -68,7 +68,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(location!!.latitude, location!!.longitude)))
-                mMap.animateCamera(CameraUpdateFactory.zoomTo(13.0f))
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(17.0f))
             }
         //Set the current location of the user in  place of sydney
         mMap.setOnCameraIdleListener(OnCameraIdleListener {
